@@ -19,7 +19,7 @@ window.addEventListener('mousemove',function(event){
     mouse.y = event.y;
     // mouse.radius = 150;
 })
-ctx.fillStyle = 'white';
+ctx.fillStyle = '#34ABF4';
 ctx.font = '30px Verdana';
 ctx.fillText("BMPS" ,5,30);   //40 က Y Position
 let textCoordinates = ctx.getImageData(0,0,100,100);     //0 0 က left နဲ့ top position 100 100 က 100px x 100px width height
@@ -36,7 +36,7 @@ class Particle {
     }
 
     draw(){
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#34ABF4';
         ctx.beginPath();
         ctx.arc(this.x,this.y,this.size,0,Math.PI * 2);       //3 က size 0 ကစမယ် Math.PI က end point
         ctx.closePath();
