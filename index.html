@@ -15,34 +15,17 @@
         overflow: auto;
         background: black;
       }
-      h1 {
-        color: white;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      #container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        background: black;
-        width: 100%;
-        height: 100%;
-      }
       #canvas1 {
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        /* width: 100%; */
+        /* height: 100%; */
       }
     </style>
   </head>
   <body>
-    <div id="container">
       <canvas id="canvas1"></canvas>
-    </div>
 
     <script>
       const canvas = document.getElementById("canvas1");
@@ -50,8 +33,8 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       let particleArray = [];
-      let adjustX = canvas.width / 200;
-      let adjustY = canvas.height / 200;
+      let adjustX = canvas.width / 3000;
+      let adjustY = canvas.height / 100;
 
       // get mouse mouse position //
       let mouse = {
@@ -64,8 +47,9 @@
         mouse.y = event.y + canvas.clientTop / 2;
       });
 
-      ctx.font = "bold 20px Verdana";
-      ctx.fillText("BMPS", 0, 40);
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("Myanmar's", 0, 25);
+      ctx.fillText("Las Vegas", 0, 42);
       const data = ctx.getImageData(0, 0, canvas.width, 100);
       const sprite = new Image();
       // sprite.src = "https://i.ibb.co/DGqfJpG/butterflies-and-flowers.png";
