@@ -12,77 +12,128 @@
         box-sizing: border-box;
       }
       body {
-        overflow: hidden;
-        background-color: #000;
+        overflow: auto;
+        background: black;
       }
-      #canvas {
+      h1 {
+        color: white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #container {
         position: absolute;
         top: 0;
         left: 0;
+        background: black;
+        width: 100%;
+        height: 100%;
+      }
+      #canvas1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
       }
     </style>
   </head>
   <body>
-    <canvas id="canvas"> </canvas>
+    <div id="container">
+      <canvas id="canvas1"></canvas>
+    </div>
 
     <script>
-      const canvus = document.getElementById("canvas");
-      const ctx = canvus.getContext("2d");
-      canvus.width = window.innerWidth;
-      canvus.height = window.innerHeight;
-
+      const canvas = document.getElementById("canvas1");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       let particleArray = [];
-      let adjustX = 20; //text place positions
-      let adjustY = 10; //text place positions
+      let adjustX = canvas.width / 200;
+      let adjustY = canvas.height / 200;
 
-      // handle Mouse
-
-      const mouse = {
+      // get mouse mouse position //
+      let mouse = {
         x: null,
         y: null,
-        radius: 200, //mouse area radius
+        radius: 150,
       };
       window.addEventListener("mousemove", function (event) {
-        mouse.x = event.x;
-        mouse.y = event.y;
-        // mouse.radius = 150;
+        mouse.x = event.x + canvas.clientLeft / 2;
+        mouse.y = event.y + canvas.clientTop / 2;
       });
-      ctx.fillStyle = "#34ABF4";
-      ctx.font = "30px Verdana";
-      ctx.fillText("BMPS", 5, 30); //40 က Y Position
-      let textCoordinates = ctx.getImageData(0, 0, 100, 100); //0 0 က left နဲ့ top position 100 100 က 100px x 100px width height
 
+      ctx.font = "bold 20px Verdana";
+      ctx.fillText("BMPS", 0, 40);
+      const data = ctx.getImageData(0, 0, canvas.width, 100);
+      const sprite = new Image();
+      // sprite.src = "https://i.ibb.co/DGqfJpG/butterflies-and-flowers.png";
       class Particle {
         constructor(x, y) {
-          //x,y ကခွဲထွက်မယ့်အမှုန်
-          this.x = x;
-          this.y = y;
-          this.size = 3; // ကွဲထွက်မယ့် အရွယ်အစား
-          this.baseX = this.x; //initial value ကိုထိန်းဖို့  ဒီးကောင်တွေကိုရွှေ့ပြီး ကွဲထွက်မယ့် ပြောင်းလဲခြင်း
-          this.baseY = this.y; //initial value ကိုထိန်းဖို့  ဒီးကောင်တွေကိုရွှေ့ပြီး ကွဲထွက်မယ့် ပြောင်းလဲခြင်း
-          this.density = Math.random() * 40 + 5;
+          (this.x = x + 200),
+            (this.y = y - 100),
+            (this.size = 3),
+            (this.baseX = this.x),
+            (this.baseY = this.y),
+            (this.density = Math.random() * 30 + 1);
+          this.random = Math.random();
+          this.spriteSize = Math.random() * 50 + 50;
+          this.frameX = Math.floor(Math.random() * 3);
+          this.frameY = Math.floor(Math.random() * 8);
+          this.angle = Math.random() * 2;
         }
-
         draw() {
-          ctx.fillStyle = "#34ABF4";
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); //3 က size 0 ကစမယ် Math.PI က end point
-          ctx.closePath();
-          ctx.fill();
+          if (this.random > 0.05) {
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+            ctx.drawImage(
+              sprite,
+              this.frameX * 213.3,
+              this.frameY * 213.3,
+              213.3,
+              213.3,
+              0 - this.spriteSize / 2,
+              0 - this.spriteSize / 2,
+              this.spriteSize,
+              this.spriteSize
+            );
+            ctx.restore();
+          }
         }
         update() {
+          // check mouse position/particle position - collision detection
           let dx = mouse.x - this.x;
           let dy = mouse.y - this.y;
           let distance = Math.sqrt(dx * dx + dy * dy);
           let forceDirectionX = dx / distance;
           let forceDirectionY = dy / distance;
-          let maxDistance = mouse.radius;
-          let force = (maxDistance - distance) / maxDistance;
+          // distance past which the force is zero
+          var maxDistance = mouse.radius;
+          // convert (0...maxDistance) range into a (1...0).
+          // Close is near 1, far is near 0
+          // for example:
+          //   250 => 0.75
+          //   100 => 0.9
+          //   10  => 0.99
+          var force = (maxDistance - distance) / maxDistance;
+
+          // if we went below zero, set it to zero.
+          if (force < 0) force = 0;
+
           let directionX = forceDirectionX * force * this.density;
           let directionY = forceDirectionY * force * this.density;
-          if (distance < mouse.radius) {
-            this.x -= directionX; // particle movement speed    += ဆို အမှုန်တွေကိုစုတယ်   -= ဆို အမှုန်တွေကိုကန်တယ်
-            this.y -= directionY; // particle movement speed
+
+          if (distance < mouse.radius + this.size) {
+            this.x -= directionX;
+            this.y -= directionY;
           } else {
             if (this.x !== this.baseX) {
               let dx = this.x - this.baseX;
@@ -95,36 +146,76 @@
           }
         }
       }
-
-      // သူက Particle object ကို ခေါ်ပြီးသုံးမယ်
       function init() {
         particleArray = [];
-        for (let y = 0, y2 = textCoordinates.height; y < y2; y++) {
-          for (let x = 0, x2 = textCoordinates.width; x < x2; x++) {
-            if (
-              textCoordinates.data[y * 4 * textCoordinates.width + x * 4 + 3] >
-              128
-            ) {
-              //128 က opcity 50% 0 - 255
+
+        for (var y = 0, y2 = data.height; y < y2; y++) {
+          for (var x = 0, x2 = data.width; x < x2; x++) {
+            if (data.data[y * 4 * data.width + x * 4 + 3] > 128) {
               let positionX = x + adjustX;
               let positionY = y + adjustY;
-              particleArray.push(new Particle(positionX * 15, positionY * 15)); // *10 က size
+              //let positionX = x;
+              //let positionY = y;
+              particleArray.push(new Particle(positionX * 15, positionY * 15));
             }
           }
         }
       }
-      init();
-
       function animate() {
-        //Animation လုပ်ဖို့
-        ctx.clearRect(0, 0, canvus.width, canvus.height);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        connect();
         for (let i = 0; i < particleArray.length; i++) {
-          particleArray[i].draw();
           particleArray[i].update();
+          particleArray[i].draw();
         }
+
         requestAnimationFrame(animate);
       }
+      init();
       animate();
+
+      // RESIZE SETTING - empty and refill particle array every time window changes size + change canvas size
+      window.addEventListener("resize", function () {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        adjustX = -60 + canvas.width / 30;
+        adjustY = -32 + canvas.height / 30;
+        init();
+      });
+
+      function connect() {
+        let opacityValue = 1;
+        for (let a = 0; a < particleArray.length; a++) {
+          for (let b = a; b < particleArray.length; b++) {
+            let distance =
+              (particleArray[a].x - particleArray[b].x) *
+                (particleArray[a].x - particleArray[b].x) +
+              (particleArray[a].y - particleArray[b].y) *
+                (particleArray[a].y - particleArray[b].y);
+
+            if (distance < 2600) {
+              opacityValue = 1 - distance / 2600;
+              let dx = mouse.x - particleArray[a].x;
+              let dy = mouse.y - particleArray[a].y;
+              let mouseDistance = Math.sqrt(dx * dx + dy * dy);
+              if (mouseDistance < mouse.radius / 2) {
+                ctx.strokeStyle = "rgba(255,255,0," + opacityValue + ")";
+              } else if (mouseDistance < mouse.radius - 50) {
+                ctx.strokeStyle = "rgba(255,255,140," + opacityValue + ")";
+              } else if (mouseDistance < mouse.radius + 20) {
+                ctx.strokeStyle = "rgba(255,255,210," + opacityValue + ")";
+              } else {
+                ctx.strokeStyle = "rgba(255,255,255," + opacityValue + ")";
+              }
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(particleArray[a].x, particleArray[a].y);
+              ctx.lineTo(particleArray[b].x, particleArray[b].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
     </script>
   </body>
 </html>
